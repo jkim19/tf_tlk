@@ -14,6 +14,7 @@ github: jkim19
 """
 
 from __future__ import absolute_import, division, print_function
+import numpy as np
 import os
 
 import tensorflow as tf
@@ -59,35 +60,37 @@ mnist_x, mnist_y = train
 mnist_ds = tf.data.Dataset.from_tensor_slices(mnist_x)
 print(mnist_ds)
 
-st = time.time()
 # downloads to a directory MNIST-data
 #   afterwards mnist is the same as input_data's method
+#   validation first 5000
 mnist = tf.contrib.learn.datasets.load_dataset('mnist')
 train_data = mnist.train.images  # returns np.array
 train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
 eval_data = mnist.test.images  # returns np.array
 eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
 
+train_dataset = tf.data.Dataset.from_tensor_slices((train_data, train_labels))
 
-        fd = open(os.path.join(path, 'train-images-idx3-ubyte'))
-        loaded = np.fromfile(file=fd, dtype=np.uint8)
-        trainX = loaded[16:].reshape((60000, 28, 28, 1)).astype(np.float32)
+# load raw mnist data and have it match tf utiliy functions
+path = 'data'
+fd = open(os.path.join(path, 'train-images.idx3-ubyte'))
+loaded = np.fromfile(file=fd, dtype=np.uint8)
+trainX = loaded[16:].reshape((60000, 784)).astype(np.float32)
+# trainX = loaded[16:].reshape((60000, 28, 28, 1)).astype(np.float32)
+fd = open(os.path.join(path, 'train-labels.idx1-ubyte'))
+loaded = np.fromfile(file=fd, dtype=np.uint8)
+trainY = loaded[8:].reshape((60000)).astype(np.int32)
+trX = trainX[5000:] / 255.
+trY = trainY[5000:]
+valX = trainX[:5000, ] / 255.
+valY = trainY[:5000]
+# trX = trainX[:55000] / 255.
+# trY = trainY[:55000]
+# valX = trainX[55000:, ] / 255.
+# valY = trainY[55000:]
+num_tr_batch = 55000 // batch_size
+num_val_batch = 5000 // batch_size
 
-        fd = open(os.path.join(path, 'train-labels-idx1-ubyte'))
-        loaded = np.fromfile(file=fd, dtype=np.uint8)
-        trainY = loaded[8:].reshape((60000)).astype(np.int32)
-
-        trX = trainX[:55000] / 255.
-        trY = trainY[:55000]
-
-        valX = trainX[55000:, ] / 255.
-        valY = trainY[55000:]
-
-        num_tr_batch = 55000 // batch_size
-        num_val_batch = 5000 // batch_size
-
-        return trX, trY, num_tr_batch, valX, valY, num_val_batch
+train_dataset = tf.data.Dataset.from_tensor_slices((trainX, trainY))
 
 (train_x, train_y), (test_x, test_y) = iris_data.load_data()
-
-
