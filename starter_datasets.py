@@ -17,6 +17,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import os
 
+import gzip
+import shutil
+
 import tensorflow as tf
 
 # Import MNIST data
@@ -92,5 +95,12 @@ num_tr_batch = 55000 // batch_size
 num_val_batch = 5000 // batch_size
 
 train_dataset = tf.data.Dataset.from_tensor_slices((trainX, trainY))
+
+# unzip mnist downloads
+with gzip.open('t10k-images-idx3-ubyte.gz') as f_in, open('t10k-images.idx3-ubyte', 'wb') as f_out:
+    print('extracting ...')
+    shutil.copyfileobj(f_in, f_out)
+    print('extraction done')
+
 
 (train_x, train_y), (test_x, test_y) = iris_data.load_data()
